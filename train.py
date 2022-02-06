@@ -2,6 +2,8 @@ import torch
 from tqdm import tqdm
 import warnings
 from utils import *
+import numpy as np
+import torch.nn as nn
 
 
 warnings.filterwarnings("ignore")
@@ -100,5 +102,17 @@ def fit(
 
     if mode == "classification" or mode == "detection":
         return losses, acc
+
     else:
         return losses
+
+
+def test_sample(model, image, label=None, loss_fn=nn.MSELoss()):
+
+    pred = model(image)
+
+    if label != None:
+        loss = loss_fn(label, pred).detach()
+        return pred, loss
+
+    return pred
