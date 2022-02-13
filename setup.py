@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.1",
     author="Rohit Rajesh",
     author_email="rajesh.rohit04@gmail.com",
-    description="Train Computer Vision models on your dataset with just a few lines of code.",
+    description="Train Computer Vision models on your custom dataset with just a few lines of code.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/04RR/Computer-Vision-Training-Library",
