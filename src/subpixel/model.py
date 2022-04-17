@@ -42,4 +42,3 @@ class Model(nn.Module):
 
                 
 m = Model()
-#summary(m,[28])
