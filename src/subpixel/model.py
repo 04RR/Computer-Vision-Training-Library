@@ -19,7 +19,7 @@ class Model(nn.Module):
         for i in range(len(self.arch)):
             if self.arch[i]["code"] != i:
                 
-                raise json.JSONDecodeError("layers not arranged properly!!","",-1)
+                raise json.JSONDecodeError("layers not arranged properly!!", "", -1)
             else:
                 x = self.arch[i]["layer"]
                 y = eval(x)
@@ -40,14 +40,14 @@ class Model(nn.Module):
 
         for i in range(len(self.arch)):
 
-            if len(self.arch[i]["inputs"])==1:
-                outputs.append(self.architecture[i](outputs[self.arch[i]["inputs"][0]] if self.arch[i]["inputs"][0]>=0 else X[abs(self.arch[i]["inputs"][0])-1]))
+            if len(self.arch[i]["inputs"]) == 1:
+                outputs.append(self.architecture[i](outputs[self.arch[i]["inputs"][0]] if self.arch[i]["inputs"][0] >= 0 else X[abs(self.arch[i]["inputs"][0]) - 1]))
             
             elif len(self.arch[i]["inputs"])>=1:
                 x = torch.cat([outputs[j] if j>=0 else X[abs(j)-1] for j in self.arch[i]["inputs"]], self.arch[i]["cat_dim"])
                 outputs.append(self.architecture[i](x))
         
-        return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"])>1 else outputs[self.details["outputs"][0]] 
+        return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"]) > 1 else outputs[self.details["outputs"][0]] 
 
 
 
