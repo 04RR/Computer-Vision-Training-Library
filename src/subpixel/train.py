@@ -12,6 +12,21 @@ torch.cuda.empty_cache()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
+def accuracy(out, labels):
+    
+    c=0
+    
+    preds = torch.round(out)
+    preds = preds.detach().cpu().numpy().tolist()
+    labels = labels.cpu().numpy().tolist()
+    
+    for label, pred in zip(labels, preds):
+        if pred == label:
+            c+=1
+
+    return c/len(out)
+
+
 def fit(
     model,
     trainset,

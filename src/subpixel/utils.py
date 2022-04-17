@@ -17,16 +17,4 @@ def get_boxxes(t):
     bbox = list(json.loads(t).values())
     return bbox[:-1] + bbox[-1]
 
-def accuracy(out, labels):
-    
-    c=0
-    
-    preds = torch.round(out)
-    preds = preds.detach().cpu().numpy().tolist()
-    labels = labels.cpu().numpy().tolist()
-    
-    for label, pred in zip(labels, preds):
-        if pred == label:
-            c+=1
 
-    return c/len(out)
