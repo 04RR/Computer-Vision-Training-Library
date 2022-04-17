@@ -1,7 +1,7 @@
 # Computer Vision Training Library (WIP)
 Train Computer Vision models on your dataset with just a few lines of code. 
 
-##ToDO
+## ToDO
 
 1. Website where users can drag and drop model architectures and download a file (JSON) with all the model details that the lib uses to generate a nn.Module model. 
 2. Find best LR - check per batch.
@@ -9,6 +9,6 @@ Train Computer Vision models on your dataset with just a few lines of code.
 6. Different model weight inits.
 7. Live Camera thing, get frames and display output on frame. 
 
-##Done
-5. Seed everything.
-4. Make fit, validation and test functions part of a new model class. 
+## Done
+5. Seed everything. <br>
+4. Make fit, validation and test functions part of a new model class. <br>
