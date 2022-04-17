@@ -25,7 +25,7 @@ class Model(nn.Module):
                 y = eval(x)
                 self.architecture.append(y)
         
-        summary(self,self.details["input_shape"])
+        #summary(self,self.details["input_shape"])
     
     def forward(self,*X):
 
