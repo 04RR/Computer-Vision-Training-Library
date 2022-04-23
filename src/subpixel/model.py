@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import json
 from torchinfo import summary
+from train import Trainer
 
 
 class Model(nn.Module):
@@ -49,7 +50,9 @@ class Model(nn.Module):
         
         return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"]) > 1 else outputs[self.details["outputs"][0]] 
 
-
+    def fit(self,trainset):
+        self.trainer = Trainer(self,trainset,None,1,"classification",learning_rate=0.003)
+        self.history = self.trainer.fit()
 
                 
 m = Model()

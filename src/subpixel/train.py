@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 import warnings
-from subpixel.data import ImageDataset
+from data import ImageDataset
 import numpy as np
 import torch.nn as nn
 
@@ -48,9 +48,10 @@ class Trainer:
         self.loss_fn = loss_fn
         self.weight_decay = weight_decay
         self.model_save_path = model_save_path
+        self.learning_rate = learning_rate
 
         if learning_rate != None:
-            learning_rate = self.find_lr()  # add FindLR class from utils after done
+            self.learning_rate = self.find_lr()  # add FindLR class from utils after done
 
     def fit(self):
 
@@ -71,8 +72,9 @@ class Trainer:
             epoch_acc = {"train": [], "val": []}
 
             self.model.train()
-            for img, label in tqdm(self.trainset):
+            for j in tqdm(range(len(self.trainset))):
 
+                img, label = self.trainset[j]
                 img, label = img.unsqueeze(0), label.unsqueeze(0)
 
                 with torch.cuda.amp.autocast():
