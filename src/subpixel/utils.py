@@ -35,7 +35,7 @@ class FindLR():
         self.lr = []
         self.loss = []
         dx = (self.end_lr - self.start_lr)/self.steps
-        Dataloader = DataLoader(self.dataset, self.find_batch_size,True)
+        Dataloader = DataLoader(self.dataset, self.find_batch_size(),True)
         scheduler = torch.optim.lr_scheduler.LambdaLR(self.optimizer,lambda epoch: epoch+dx)
         self.model.train()
         for i in self.steps:
