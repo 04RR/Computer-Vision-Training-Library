@@ -40,7 +40,7 @@ class Trainer:
         weight_decay=1e-5,
         model_save_path="./",
     ):
-        self.model = model
+        self.model = model.cuda() if device == "cuda" else model
         self.trainset = trainset
         self.valset = valset
         self.epochs = epochs
