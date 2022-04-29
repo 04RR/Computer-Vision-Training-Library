@@ -28,9 +28,6 @@ def get_boxxes(t):
 
 
 def seed_everything(seed=42):
-    import random, os
-    import numpy as np
-    import torch
 
     random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
