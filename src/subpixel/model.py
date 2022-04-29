@@ -1,8 +1,10 @@
+from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 import json
 from torchinfo import summary
 from train import Trainer
+from utils import FindLR
 
 
 class Model(nn.Module):
@@ -51,7 +53,10 @@ class Model(nn.Module):
         return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"]) > 1 else outputs[self.details["outputs"][0]] 
 
     def fit(self,trainset):
-        self.trainer = Trainer(self,trainset,None,1,"classification",learning_rate=0.003)
+        self.idealLR, self.loss,self.LRs = FindLR(self, trainset, nn.MSELoss(), torch.optim.Adam(self.parameters())).findLR()
+        plt.plot(self.LRs,self.loss)
+        plt.show()
+        self.trainer = Trainer(self,trainset,None,1,"classification",learning_rate=self.idealLR)
         self.history = self.trainer.fit()
 
                 
