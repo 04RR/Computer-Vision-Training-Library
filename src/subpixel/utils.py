@@ -37,10 +37,6 @@ def seed_everything(seed=42):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
 
-
-seed_everything(42)
-
-
 def init_model(m):
     # print(list(m.modules()))
     # return [nn.init.xavier_uniform_(i.weight) for i in m.modules()]
@@ -48,16 +44,19 @@ def init_model(m):
     seed_everything()
 
     if isinstance(m, nn.Conv2d):
-        nn.init.xavier_uniform_(m.weight.data)
+        nn.init.xavier_normal_(m.weight.data)
         # if m.bias is not None:
         #     nn.init.xavier_uniform_(m.bias.data)
 
     elif isinstance(m, nn.BatchNorm2d):
-        nn.init.xavier_uniform_(m.weight.data)
+        nn.init.xavier_normal_(m.weight.data)
+
+        
         # nn.init.xavier_uniform_(m.bias.data)
 
     elif isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight.data)
+        nn.init.xavier_normal_(m.weight.data)
+        
         # nn.init.xavier_uniform_(m.bias.data)
 
 
@@ -75,20 +74,17 @@ class FindLR:
         self.steps = steps
 
     def findLR(self):
-
+        seed_everything()
         self.lr = []
         self.loss = []
 
         dx = (self.end_lr - self.start_lr) / self.steps
         x = self.find_batch_size()
-
-        print(x)
-
-        Dataloader = iter(DataLoader(self.dataset, x, True))
+        
         scheduler = torch.optim.lr_scheduler.LambdaLR(
-            self.optimizer, lambda epoch: epoch + dx
+            self.optimizer, lambda epoch: epoch - dx
         )
-
+        Dataloader = iter(DataLoader(self.dataset, x, True))
         self.model.train()
 
         self.model = self.model.cuda()
@@ -101,13 +97,16 @@ class FindLR:
             loss = self.loss_fn(pred, label)
 
             self.loss.append(loss.detach().cpu().numpy())
-            self.lr.append(self.start_lr + i * dx)
+            self.lr.append(self.end_lr - i * dx)
             self.optimizer.zero_grad()
 
             loss.backward()
             self.optimizer.step()
 
             scheduler.step()
+            self.model.apply(init_model)
+
+            
 
         return self.lr[numpy.argmin(diff(self.loss) / dx)], self.loss, self.lr
 
@@ -130,4 +129,4 @@ class FindLR:
         torch.cuda.empty_cache()
         b_size = int(available_size // data_size)
 
-        return b_size if len(self.dataset) > b_size else len(self.dataset)
+        return b_size if len(self.dataset)//self.steps >= b_size else len(self.dataset)//self.steps

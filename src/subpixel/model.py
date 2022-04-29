@@ -55,11 +55,14 @@ class Model(nn.Module):
 
     def fit(self,trainset):
 
-        self.idealLR, self.loss,self.LRs = FindLR(self, trainset, nn.MSELoss(), torch.optim.Adam(self.parameters())).findLR()
+        self.idealLR, self.loss,self.LRs = FindLR(self, trainset, nn.MSELoss(), torch.optim.Adam(self.parameters(),1e-3)).findLR()
         plt.plot(self.LRs,self.loss)
+        plt.ylabel("loss")
+        plt.xlabel("lr")
         plt.show()
-        # self.trainer = Trainer(self,trainset,None,1,"classification",learning_rate=self.idealLR)
-        # self.history = self.trainer.fit()
+        print("Ideal LR = ", self.idealLR)
+        self.trainer = Trainer(self,trainset,None,10,"classification",learning_rate=self.idealLR)
+        self.history = self.trainer.fit()
 
     def find_size(self):
     # added new funcion
