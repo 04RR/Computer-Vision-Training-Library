@@ -61,7 +61,7 @@ class Model(nn.Module):
         self.history = self.trainer.fit()
 
     def find_size(self):
-    
+    # added new funcion
         p = sum(p.numel() for p in self.parameters() if p.requires_grad) 
 
         mods = list(self.modules())
