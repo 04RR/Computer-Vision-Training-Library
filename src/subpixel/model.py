@@ -5,6 +5,7 @@ import json
 from torchinfo import summary
 from train import Trainer
 from utils import FindLR
+import numpy as np
 
 
 class Model(nn.Module):
@@ -58,6 +59,26 @@ class Model(nn.Module):
         plt.show()
         self.trainer = Trainer(self,trainset,None,1,"classification",learning_rate=self.idealLR)
         self.history = self.trainer.fit()
+
+    def find_size(self):
+    
+        p = sum(p.numel() for p in self.parameters() if p.requires_grad) 
+
+        mods = list(self.modules())
+        for i in range(1,len(mods)):
+            m = mods[i]
+            p = list(m.parameters())
+            sizes = []
+            for j in range(len(p)):
+                sizes.append(np.array(p[j].size()))
+
+        total_bits = 0
+        for i in range(len(sizes)):
+            s = sizes[i]
+            bits = np.prod(np.array(s))*bits
+            total_bits += bits
+
+        return p, total_bits
 
                 
 m = Model()
