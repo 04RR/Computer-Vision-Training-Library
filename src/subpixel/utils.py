@@ -104,7 +104,8 @@ class FindLR:
             self.optimizer.step()
 
             scheduler.step()
-            self.model.apply(init_model)
+            
+        self.model.apply(init_model)
 
             
 
