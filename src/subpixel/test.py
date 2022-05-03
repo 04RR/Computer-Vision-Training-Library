@@ -23,23 +23,24 @@ class Datas(torch.utils.data.Dataset):
         )
 
     def __len__(self):
+        # return 1000   
         return len(self.dataset)
 
 
 class Test:
-    def __init__(self, model, dataset, loss_fn, optimizer) -> None:
+    def __init__(self, model, dataset, loss_fun) -> None:
         self.model = model
         # x = int(0.1*len(dataset)) if int(len(dataset))<100 else 100
-        self.dataset, self.loss_fn, self.optimizer = dataset, loss_fn, optimizer
+        self.dataset= dataset
+        self.loss_fun = loss_fun
 
     def test(self):
-        print("Testing......")
-        self.model.fit(self.dataset)
-        print("sorted!!!")
+        print("Testing...")
+        self.model.fit(self.dataset, self.loss_fun)
 
 
 datase = Datas(dataset)
 model = Model().cuda()
-tes = Test(model, datase, nn.CrossEntropyLoss(), torch.optim.Adam(model.parameters()))
+tes = Test(model, datase, loss_fun= nn.MSELoss())
 tes.test()
 

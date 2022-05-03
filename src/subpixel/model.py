@@ -53,19 +53,23 @@ class Model(nn.Module):
         
         return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"]) > 1 else outputs[self.details["outputs"][0]] 
 
-    def fit(self,trainset):
+    def fit(self,trainset, loss_fun, lr= None):
 
-        self.idealLR, self.loss,self.LRs = FindLR(self, trainset, nn.MSELoss(), torch.optim.Adam(self.parameters(),1e-3)).findLR()
-        plt.plot(self.LRs,self.loss)
-        plt.ylabel("loss")
-        plt.xlabel("lr")
-        plt.show()
-        print("Ideal LR = ", self.idealLR)
-        self.trainer = Trainer(self,trainset,None,10,"classification",learning_rate=0.001)
+        if lr == None:
+            self.idealLR, self.loss,self.LRs = FindLR(self, trainset, loss_fun).findLR()
+            plt.plot(self.LRs,self.loss)
+            plt.ylabel("loss")
+            plt.xlabel("lr")
+            plt.show()
+            print("Ideal LR = ", self.idealLR)
+
+            lr = self.idealLR
+
+        self.trainer = Trainer(self, trainset= trainset, epochs= 10, learning_rate= lr)
         self.history = self.trainer.fit()
 
     def find_size(self):
-    # added new funcion
+        
         p_total = sum(p.numel() for p in self.parameters() if p.requires_grad) 
         bits = 32.
 
@@ -86,4 +90,4 @@ class Model(nn.Module):
         return p_total, total_bits
 
                 
-m = Model()
+# m = Model()

@@ -1,9 +1,9 @@
 {
     "arch":[ 
         {"code":0,"layer":"nn.Conv2d(1,32,3)","inputs":[-1]},
-        {"code":1,"layer":"nn.ReLU()","inputs":[0]},
+        {"code":1,"layer":"nn.Sigmoid()","inputs":[0]},
         {"code":2,"layer":"nn.Conv2d(32,1,3)","inputs":[1]},
-        {"code":3,"layer":"nn.ReLU()","inputs":[2]},
+        {"code":3,"layer":"nn.Sigmoid()","inputs":[2]},
         {"code":4,"layer":"nn.Flatten()","inputs":[3]},
 
         

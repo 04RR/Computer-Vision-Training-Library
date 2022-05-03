@@ -37,38 +37,36 @@ def seed_everything(seed=42):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
 
+
 def init_model(m):
-    # print(list(m.modules()))
-    # return [nn.init.xavier_uniform_(i.weight) for i in m.modules()]
 
     seed_everything()
 
     if isinstance(m, nn.Conv2d):
         nn.init.xavier_normal_(m.weight.data)
-        # if m.bias is not None:
-        #     nn.init.xavier_uniform_(m.bias.data)
 
     elif isinstance(m, nn.BatchNorm2d):
         nn.init.xavier_normal_(m.weight.data)
 
-        
-        # nn.init.xavier_uniform_(m.bias.data)
-
     elif isinstance(m, nn.Linear):
         nn.init.xavier_normal_(m.weight.data)
-        
-        # nn.init.xavier_uniform_(m.bias.data)
 
 
 class FindLR:
     def __init__(
-        self, model, dataset, loss_fn, optimizer, start_lr=1e-7, end_lr=1e0, steps=100
+        self, model, dataset, loss_fn, start_lr=1e-7, end_lr=1e-1, steps=100
     ) -> None:
 
         self.model = model
         self.dataset = dataset
         self.loss_fn = loss_fn
-        self.optimizer = optimizer
+
+        # change this to string input so ppl can change optimizer and get best lr.
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=start_lr,
+            weight_decay=1e-5
+        )
         self.start_lr = start_lr
         self.end_lr = end_lr
         self.steps = steps
@@ -103,10 +101,8 @@ class FindLR:
             self.optimizer.step()
 
             scheduler.step()
-            
-        self.model.apply(init_model)
 
-            
+        self.model.apply(init_model)
 
         return self.lr[numpy.argmin(diff(self.loss) / dx)], self.loss, self.lr
 
@@ -128,4 +124,8 @@ class FindLR:
 
         torch.cuda.empty_cache()
         b_size = int(available_size // data_size)
-        return b_size if len(self.dataset)//self.steps >= b_size else len(self.dataset)//self.steps
+        return (
+            b_size
+            if len(self.dataset) // self.steps >= b_size
+            else len(self.dataset) // self.steps
+        )

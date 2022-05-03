@@ -4,6 +4,7 @@ import warnings
 from data import ImageDataset
 import numpy as np
 import torch.nn as nn
+from utils import FindLR
 
 
 warnings.filterwarnings("ignore")
@@ -32,6 +33,7 @@ class Trainer:
         self,
         model,
         trainset,
+        optimizer=None,
         valset=None,
         epochs=10,
         mode="classification",
@@ -50,18 +52,23 @@ class Trainer:
         self.model_save_path = model_save_path
         self.learning_rate = learning_rate
 
-        if learning_rate != None:
-            self.learning_rate = self.find_lr()  # add FindLR class from utils after done
+        if learning_rate == None:
+            self.learning_rate = self.find_lr()
+            # print(self.learning_rate)
+
+        if optimizer == None:
+            self.optimizer = torch.optim.Adam(
+                self.model.parameters(),
+                lr=self.learning_rate,
+                weight_decay=self.weight_decay,
+            )
+        else:
+            self.optimizer = optimizer
+
 
     def fit(self):
 
         flag = self.mode == "classification" or self.mode == "detection"
-
-        optimizer = torch.optim.Adam(
-            self.model.parameters(),
-            lr=self.learning_rate,
-            weight_decay=self.weight_decay,
-        )
         scaler = torch.cuda.amp.GradScaler()
         losses = {"train": [], "val": []}
         acc = {"train": [], "val": []}
@@ -93,9 +100,9 @@ class Trainer:
                         epoch_acc["train"].append(a)
 
                 scaler.scale(loss).backward()
-                scaler.step(optimizer)
+                scaler.step(self.optimizer)
                 scaler.update()
-                optimizer.zero_grad()
+                self.optimizer.zero_grad()
 
             losses["train"].append(sum(epoch_loss["train"]) / len(epoch_loss["train"]))
 
@@ -131,7 +138,7 @@ class Trainer:
                     )
 
                     print(
-                        f"{epoch+1}/{self.epochs} -- Train Loss: {losses['train'][-1]} -- Train acc: {acc['train'][-1]} -- Val Loss: {losses['val'][-1]} -- Val acc: {acc['val'][-1]}"
+                        f"{epoch+1}/{self.epochs} -- Train Loss: {losses['train'][-1]} -- Train acc: {acc['train'][-1] *100}% -- Val Loss: {losses['val'][-1]} -- Val acc: {acc['val'][-1]*100}%"
                     )
                 else:
                     print(
@@ -146,7 +153,7 @@ class Trainer:
                     )
 
                     print(
-                        f"{epoch+1}/{self.epochs} -- Train Loss: {losses['train'][-1]} -- Train acc: {acc['train'][-1]}"
+                        f"{epoch+1}/{self.epochs} -- Train Loss: {losses['train'][-1]} -- Train acc: {acc['train'][-1] * 100}%"
                     )
                 else:
                     print(
@@ -184,5 +191,5 @@ class Trainer:
         return sum(losses) / len(losses)
 
     def find_lr(self):
-        return 0.0
+        return FindLR(self.model, self.trainset, self.loss_fn).findLR()[0]
 
