@@ -62,7 +62,7 @@ def init_model(m):
 
 class FindLR:
     def __init__(
-        self, model, dataset, loss_fn, optimizer, start_lr=1e-6, end_lr=1e-3, steps=20
+        self, model, dataset, loss_fn, optimizer, start_lr=1e-7, end_lr=1e0, steps=100
     ) -> None:
 
         self.model = model
@@ -80,9 +80,8 @@ class FindLR:
 
         dx = (self.end_lr - self.start_lr) / self.steps
         x = self.find_batch_size()
-        
         scheduler = torch.optim.lr_scheduler.LambdaLR(
-            self.optimizer, lambda epoch: epoch - dx
+            self.optimizer, lambda epoch: epoch + dx
         )
         Dataloader = iter(DataLoader(self.dataset, x, True))
         self.model.train()
@@ -97,7 +96,7 @@ class FindLR:
             loss = self.loss_fn(pred, label)
 
             self.loss.append(loss.detach().cpu().numpy())
-            self.lr.append(self.end_lr - i * dx)
+            self.lr.append(self.start_lr + i * dx)
             self.optimizer.zero_grad()
 
             loss.backward()
@@ -129,5 +128,4 @@ class FindLR:
 
         torch.cuda.empty_cache()
         b_size = int(available_size // data_size)
-
         return b_size if len(self.dataset)//self.steps >= b_size else len(self.dataset)//self.steps

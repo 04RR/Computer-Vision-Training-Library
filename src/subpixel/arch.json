@@ -1,19 +1,25 @@
 {
     "arch":[ 
         {"code":0,"layer":"nn.Conv2d(1,32,3)","inputs":[-1]},
-        {"code":1,"layer":"nn.Conv2d(32,1,3)","inputs":[0]},
-        {"code":2,"layer":"nn.Flatten()","inputs":[1]},
+        {"code":1,"layer":"nn.ReLU()","inputs":[0]},
+        {"code":2,"layer":"nn.Conv2d(32,1,3)","inputs":[1]},
+        {"code":3,"layer":"nn.ReLU()","inputs":[2]},
+        {"code":4,"layer":"nn.Flatten()","inputs":[3]},
 
         
-        {"code":3,"layer":"nn.Linear(576,64)","inputs":[2]},
-        {"code":4,"layer":"nn.Linear(64,32)","inputs":[3]},
+        {"code":5,"layer":"nn.Linear(576,64)","inputs":[4]},
+        {"code":6,"layer":"nn.ReLU()","inputs":[5]},
+        {"code":7,"layer":"nn.Linear(64,32)","inputs":[6]},
+        {"code":8,"layer":"nn.ReLU()","inputs":[7]},
+
         
-        {"code":5,"layer":"nn.Linear(32,10)","inputs":[4]}
+        {"code":9,"layer":"nn.Linear(32,10)","inputs":[8]},
+        {"code":10,"layer":"nn.Sigmoid()","inputs":[9]}
     ],
     "details": {
         "input_shape":[28,28],
-        "outputs":[5],
-        "num_inputs": 1 
+        "outputs":[10],
+        "num_inputs": 1
     }
 
 }

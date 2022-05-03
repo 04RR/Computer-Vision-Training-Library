@@ -61,7 +61,7 @@ class Model(nn.Module):
         plt.xlabel("lr")
         plt.show()
         print("Ideal LR = ", self.idealLR)
-        self.trainer = Trainer(self,trainset,None,10,"classification",learning_rate=self.idealLR)
+        self.trainer = Trainer(self,trainset,None,10,"classification",learning_rate=0.001)
         self.history = self.trainer.fit()
 
     def find_size(self):
