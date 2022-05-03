@@ -1,5 +1,14 @@
 import json
+import numpy
+from torch.utils.data import DataLoader
 import torch
+import torchvision
+from numpy import diff
+from tqdm import tqdm
+import torch.nn as nn
+import os
+import numpy as np
+import random
 
 
 def show_batch(data):
@@ -17,16 +26,106 @@ def get_boxxes(t):
     bbox = list(json.loads(t).values())
     return bbox[:-1] + bbox[-1]
 
-def accuracy(out, labels):
-    
-    c=0
-    
-    preds = torch.round(out)
-    preds = preds.detach().cpu().numpy().tolist()
-    labels = labels.cpu().numpy().tolist()
-    
-    for label, pred in zip(labels, preds):
-        if pred == label:
-            c+=1
 
-    return c/len(out)
+def seed_everything(seed=42):
+
+    random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = True
+
+
+def init_model(m):
+
+    seed_everything()
+
+    if isinstance(m, nn.Conv2d):
+        nn.init.xavier_normal_(m.weight.data)
+
+    elif isinstance(m, nn.BatchNorm2d):
+        nn.init.xavier_normal_(m.weight.data)
+
+    elif isinstance(m, nn.Linear):
+        nn.init.xavier_normal_(m.weight.data)
+
+
+class FindLR:
+    def __init__(
+        self, model, dataset, loss_fn, start_lr=1e-7, end_lr=1e-1, steps=100
+    ) -> None:
+
+        self.model = model
+        self.dataset = dataset
+        self.loss_fn = loss_fn
+
+        # change this to string input so ppl can change optimizer and get best lr.
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=start_lr,
+            weight_decay=1e-5
+        )
+        self.start_lr = start_lr
+        self.end_lr = end_lr
+        self.steps = steps
+
+    def findLR(self):
+        seed_everything()
+        self.lr = []
+        self.loss = []
+
+        dx = (self.end_lr - self.start_lr) / self.steps
+        x = self.find_batch_size()
+        scheduler = torch.optim.lr_scheduler.LambdaLR(
+            self.optimizer, lambda epoch: epoch + dx
+        )
+        Dataloader = iter(DataLoader(self.dataset, x, True))
+        self.model.train()
+
+        self.model = self.model.cuda()
+        self.model.apply(init_model)
+
+        for i in tqdm(range(0, self.steps)):
+
+            data, label = next(Dataloader)
+            pred = self.model(data)
+            loss = self.loss_fn(pred, label)
+
+            self.loss.append(loss.detach().cpu().numpy())
+            self.lr.append(self.start_lr + i * dx)
+            self.optimizer.zero_grad()
+
+            loss.backward()
+            self.optimizer.step()
+
+            scheduler.step()
+
+        self.model.apply(init_model)
+
+        return self.lr[numpy.argmin(diff(self.loss) / dx)], self.loss, self.lr
+
+    def find_batch_size(self):
+
+        p, total_bits = self.model.find_size()
+        f_before = torch.cuda.memory_reserved(0) - torch.cuda.memory_allocated(0)
+
+        for data in self.dataset:
+            img, label = data
+            img = img.cuda()
+            label = label.cuda()
+            break
+
+        f_after = torch.cuda.memory_reserved(0) - torch.cuda.memory_allocated(0)
+        data_size = -f_after + f_before
+
+        available_size = 0.95 * (f_after - total_bits + data_size)
+
+        torch.cuda.empty_cache()
+        b_size = int(available_size // data_size)
+        return (
+            b_size
+            if len(self.dataset) // self.steps >= b_size
+            else len(self.dataset) // self.steps
+        )
