@@ -29,7 +29,6 @@ class Model(nn.Module):
                 y = eval(x)
                 self.architecture.append(y)
         
-        #summary(self,self.details["input_shape"])
     
     def forward(self,*X):
 
@@ -88,6 +87,3 @@ class Model(nn.Module):
             total_bits += bits
 
         return p_total, total_bits
-
-                
-# m = Model()
