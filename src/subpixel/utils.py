@@ -10,6 +10,8 @@ import os
 import numpy as np
 import random
 
+from subpixel.model import Model
+
 
 def show_batch(data):
     pass
@@ -52,80 +54,81 @@ def init_model(m):
         nn.init.xavier_normal_(m.weight.data)
 
 
-class FindLR:
-    def __init__(
-        self, model, dataset, loss_fn, start_lr=1e-7, end_lr=1e-1, steps=100
-    ) -> None:
 
-        self.model = model
-        self.dataset = dataset
-        self.loss_fn = loss_fn
+def findLR( model, dataset, loss_fn,optimizer , start_lr=1e-7, end_lr=1e-1, steps=100):
+    seed_everything()
+    lr = []
+    loss = []
+    optimizer = __get_optimizer(model,lr=start_lr)
+    dx = (end_lr - start_lr) / steps
 
-        # change this to string input so ppl can change optimizer and get best lr.
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(),
-            lr=start_lr,
-            weight_decay=1e-5
+    x = find_batch_size(model, dataset) 
+    if len(dataset) // steps < x:
+        x = len(dataset) // steps
+    
+    scheduler = torch.optim.lr_scheduler.LambdaLR(
+        optimizer, lambda epoch: epoch + dx
+    )
+    Dataloader = iter(DataLoader(dataset, x, True))
+    model.train()
+
+    model = model.cuda()
+    model.apply(init_model)
+
+    for i in tqdm(range(0, steps)):
+
+        data, label = next(Dataloader)
+        pred = model(data)
+        loss = loss_fn(pred, label)
+
+        loss.append(loss.detach().cpu().numpy())
+        lr.append(start_lr + i * dx)
+        optimizer.zero_grad()
+
+        loss.backward()
+        optimizer.step()
+
+        scheduler.step()
+
+    model.apply(init_model)
+
+    return lr[numpy.argmin(diff(loss) / dx)], loss, lr
+
+
+
+def find_batch_size(model, dataset):
+
+    p, total_bits = model.find_size()
+    f_before = torch.cuda.memory_reserved(0) - torch.cuda.memory_allocated(0)
+
+    for data in dataset:
+        img, label = data
+        img = img.cuda()
+        label = label.cuda()
+        break
+
+    f_after = torch.cuda.memory_reserved(0) - torch.cuda.memory_allocated(0)
+    data_size = -f_after + f_before
+
+    available_size = 0.95 * (f_after - total_bits + data_size)
+
+    torch.cuda.empty_cache()
+    b_size = int(available_size // data_size)
+    return b_size
+
+
+def __get_optimizer(model : nn.Module, optim : str = "adam", lr : float = 1e-3, weight_decay : float = 1e-5):
+    if optim == "adam":
+        return torch.optim.Adam(
+            model.parameters(),
+            lr,
+            weight_decay= weight_decay
         )
-        self.start_lr = start_lr
-        self.end_lr = end_lr
-        self.steps = steps
-
-    def findLR(self):
-        seed_everything()
-        self.lr = []
-        self.loss = []
-
-        dx = (self.end_lr - self.start_lr) / self.steps
-
-        x = self.find_batch_size() 
-        if len(self.dataset) // self.steps < x:
-            x = len(self.dataset) // self.steps
-        
-        scheduler = torch.optim.lr_scheduler.LambdaLR(
-            self.optimizer, lambda epoch: epoch + dx
+    elif optim == "sgd":
+        return torch.optim.SGD(
+            model.parameters(),
+            lr,
+            weight_decay= weight_decay
         )
-        Dataloader = iter(DataLoader(self.dataset, x, True))
-        self.model.train()
-
-        self.model = self.model.cuda()
-        self.model.apply(init_model)
-
-        for i in tqdm(range(0, self.steps)):
-
-            data, label = next(Dataloader)
-            pred = self.model(data)
-            loss = self.loss_fn(pred, label)
-
-            self.loss.append(loss.detach().cpu().numpy())
-            self.lr.append(self.start_lr + i * dx)
-            self.optimizer.zero_grad()
-
-            loss.backward()
-            self.optimizer.step()
-
-            scheduler.step()
-
-        self.model.apply(init_model)
-
-        return self.lr[numpy.argmin(diff(self.loss) / dx)], self.loss, self.lr
-
-    def find_batch_size(self):
-
-        p, total_bits = self.model.find_size()
-        f_before = torch.cuda.memory_reserved(0) - torch.cuda.memory_allocated(0)
-
-        for data in self.dataset:
-            img, label = data
-            img = img.cuda()
-            label = label.cuda()
-            break
-
-        f_after = torch.cuda.memory_reserved(0) - torch.cuda.memory_allocated(0)
-        data_size = -f_after + f_before
-
-        available_size = 0.95 * (f_after - total_bits + data_size)
-
-        torch.cuda.empty_cache()
-        b_size = int(available_size // data_size)
-        return b_size
+    else:
+        raise NotImplementedError("Optimizer not implemented yet!!")

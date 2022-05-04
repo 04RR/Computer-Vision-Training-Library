@@ -4,7 +4,7 @@ import torch.nn as nn
 import json
 from torchinfo import summary
 from train import Trainer
-from utils import FindLR
+from utils import findLR,find_batch_size
 import numpy as np
 
 
@@ -52,10 +52,11 @@ class Model(nn.Module):
         
         return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"]) > 1 else outputs[self.details["outputs"][0]] 
 
-    def fit(self,trainset, loss_fun, lr= None):
+    def fit(self,trainset, loss_fun,optimizer : str , lr= None):
+        ''''''
 
         if lr == None:
-            self.idealLR, self.loss,self.LRs = FindLR(self, trainset, loss_fun).findLR()
+            self.idealLR, self.loss,self.LRs = findLR(self,trainset,loss_fun,optimizer)
             plt.plot(self.LRs,self.loss)
             plt.ylabel("loss")
             plt.xlabel("lr")
