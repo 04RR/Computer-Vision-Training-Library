@@ -1,10 +1,11 @@
+from typing import Union
 from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 import json
 from torchinfo import summary
 from train import Trainer
-from utils import findLR,find_batch_size
+from utils import findLR, find_batch_size
 import numpy as np
 
 
@@ -52,21 +53,14 @@ class Model(nn.Module):
         
         return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"]) > 1 else outputs[self.details["outputs"][0]] 
 
-    def fit(self,trainset, loss_fun,optimizer : str , lr= None):
-        ''''''
-
-        if lr == None:
-            self.idealLR, self.loss,self.LRs = findLR(self,trainset,loss_fun,optimizer)
-            plt.plot(self.LRs,self.loss)
-            plt.ylabel("loss")
-            plt.xlabel("lr")
-            plt.show()
-            print("Ideal LR = ", self.idealLR)
-
-            lr = self.idealLR
+    def fit(self,trainset : Union(str,nn.Module), loss_fun : nn.Module,optimizer : str , lr :int = None):
+        '''
+        Trains the model on the given trainset
+        '''
 
         self.trainer = Trainer(self, trainset= trainset, epochs= 10, learning_rate= lr)
         self.history = self.trainer.fit()
+        return self.history
 
     def find_size(self):
         
