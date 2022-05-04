@@ -5,7 +5,6 @@ import torch.nn as nn
 from torch.utils import data
 import torchvision
 from model import Model
-from torchinfo import summary
 from PIL import Image
 
 dataset = torchvision.datasets.FashionMNIST("./", download=True)
@@ -35,7 +34,7 @@ class Test:
         self.loss_fun = loss_fun
 
     def test(self):
-        print("Testing...")
+        print("Testing!")
         self.model.fit(self.dataset, self.loss_fun)
 
 

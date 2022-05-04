@@ -51,6 +51,7 @@ class Trainer:
         self.weight_decay = weight_decay
         self.model_save_path = model_save_path
         self.learning_rate = learning_rate
+        self.b_size = FindLR.find_batch_size()
 
         if learning_rate == None:
             self.learning_rate = self.find_lr()
