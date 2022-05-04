@@ -1,10 +1,11 @@
+from torch.utils.data import Dataset
 import torch
 from tqdm import tqdm
 import warnings
-from data import ImageDataset
+from data import ImageDataset, get_dataloader, get_dataset
 import numpy as np
 import torch.nn as nn
-from utils import FindLR
+from utils import findLR, find_batch_size, __get_optimizer
 
 
 warnings.filterwarnings("ignore")
@@ -33,7 +34,8 @@ class Trainer:
         self,
         model,
         trainset,
-        optimizer=None,
+        transforms=None,
+        optimizer="adam",
         valset=None,
         epochs=10,
         mode="classification",
@@ -41,9 +43,10 @@ class Trainer:
         learning_rate=None,
         weight_decay=1e-5,
         model_save_path="./",
+        shuffle=True,
+        device="cpu",
     ):
         self.model = model.cuda() if device == "cuda" else model
-        self.trainset = trainset
         self.valset = valset
         self.epochs = epochs
         self.mode = mode
@@ -51,21 +54,36 @@ class Trainer:
         self.weight_decay = weight_decay
         self.model_save_path = model_save_path
         self.learning_rate = learning_rate
-        self.b_size = FindLR.find_batch_size()
+        self.shuffle = shuffle
+        self.device = device
+
+        if isinstance(trainset, str):
+            self.trainset, self.valset = get_dataset(
+                trainset, self.mode, device, transforms
+            )
+
+        elif isinstance(trainset, Dataset) or isinstance(trainset, ImageDataset):
+            self.trainset = trainset
+            self.valset = valset
+
+        self.b_size = find_batch_size(model, self.trainset)
 
         if learning_rate == None:
-            self.learning_rate = self.find_lr()
-            # print(self.learning_rate)
-
-        if optimizer == None:
-            self.optimizer = torch.optim.Adam(
-                self.model.parameters(),
-                lr=self.learning_rate,
-                weight_decay=self.weight_decay,
+            self.learning_rate = findLR(
+                self.model, self.trainset, self.loss_fn, optimizer
             )
-        else:
-            self.optimizer = optimizer
 
+        self.optimizer = __get_optimizer(
+            self.model,
+            optim=optimizer,
+            lr=self.learning_rate,
+            weight_decay=self.weight_decay,
+        )
+
+        self.train_dl = get_dataloader(self.trainset, self.b_size, self.shuffle)
+
+        if valset != None:
+            self.val_dl = get_dataloader(self.valset, self.b_size, self.shuffle)
 
     def fit(self):
 
@@ -80,10 +98,7 @@ class Trainer:
             epoch_acc = {"train": [], "val": []}
 
             self.model.train()
-            for j in tqdm(range(len(self.trainset))):
-
-                img, label = self.trainset[j]
-                img, label = img.unsqueeze(0), label.unsqueeze(0)
+            for img, label in tqdm(self.train_dl):
 
                 with torch.cuda.amp.autocast():
 
@@ -110,9 +125,7 @@ class Trainer:
             if self.valset != None:
 
                 self.model.eval()
-                for img, label in tqdm(self.valset):
-
-                    img, label = img.unsqueeze(0), label.unsqueeze(0)
+                for img, label in tqdm(self.val_dl):
 
                     with torch.cuda.amp.autocast():
 
@@ -181,16 +194,15 @@ class Trainer:
 
     def evaluate(self, test_path):
 
-        testset = ImageDataset(test_path, self.mode, device)
+        test_dl = get_dataloader(
+            ImageDataset(test_path, self.mode, device), self.b_size, False
+        )
         losses = []
 
-        for img, label in testset:
-            pred = self.model(img.unsqueeze(0))
+        for img, label in test_dl:
+            pred = self.model(img)
             loss = self.loss_fn(label, pred).detach()
             losses.append(loss)
 
         return sum(losses) / len(losses)
-
-    def find_lr(self):
-        return FindLR(self.model, self.trainset, self.loss_fn).findLR()[0]
 
