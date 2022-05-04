@@ -77,7 +77,11 @@ class FindLR:
         self.loss = []
 
         dx = (self.end_lr - self.start_lr) / self.steps
-        x = self.find_batch_size()
+
+        x = self.find_batch_size() 
+        if len(self.dataset) // self.steps < x:
+            x = len(self.dataset) // self.steps
+        
         scheduler = torch.optim.lr_scheduler.LambdaLR(
             self.optimizer, lambda epoch: epoch + dx
         )
@@ -124,8 +128,4 @@ class FindLR:
 
         torch.cuda.empty_cache()
         b_size = int(available_size // data_size)
-        return (
-            b_size
-            if len(self.dataset) // self.steps >= b_size
-            else len(self.dataset) // self.steps
-        )
+        return b_size
