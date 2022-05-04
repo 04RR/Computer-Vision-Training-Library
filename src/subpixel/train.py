@@ -5,7 +5,7 @@ import warnings
 from data import ImageDataset, get_dataloader, get_dataset
 import numpy as np
 import torch.nn as nn
-from utils import findLR, find_batch_size, __get_optimizer
+from utils import findLR, find_batch_size, get_optimizer
 
 
 warnings.filterwarnings("ignore")
@@ -71,9 +71,9 @@ class Trainer:
         if learning_rate == None:
             self.learning_rate = findLR(
                 self.model, self.trainset, self.loss_fn, optimizer
-            )
+            )[0]
 
-        self.optimizer = __get_optimizer(
+        self.optimizer = get_optimizer(
             self.model,
             optim=optimizer,
             lr=self.learning_rate,

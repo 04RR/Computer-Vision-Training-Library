@@ -10,7 +10,7 @@ import os
 import numpy as np
 import random
 
-from subpixel.model import Model
+# from subpixel.model import Model
 
 
 def show_batch(data):
@@ -75,7 +75,7 @@ def findLR( model : nn.Module, dataset : nn.Module, loss_fn : nn.Module ,optimiz
     seed_everything()
     lr = []
     loss = []
-    optimizer = __get_optimizer(model,lr=start_lr)
+    optimizer = get_optimizer(model,lr=start_lr)
     dx = (end_lr - start_lr) / steps
 
     x = find_batch_size(model, dataset) 
@@ -95,15 +95,14 @@ def findLR( model : nn.Module, dataset : nn.Module, loss_fn : nn.Module ,optimiz
 
         data, label = next(Dataloader)
         pred = model(data)
-        loss = loss_fn(pred, label)
+        loss_ = loss_fn(pred, label)
 
-        loss.append(loss.detach().cpu().numpy())
+        loss.append(loss_.detach().cpu().numpy())
         lr.append(start_lr + i * dx)
         optimizer.zero_grad()
 
-        loss.backward()
+        loss_.backward()
         optimizer.step()
-
         scheduler.step()
 
     model.apply(init_model)
@@ -141,14 +140,14 @@ def find_batch_size(model : nn.Module, dataset : nn.Module) -> None:
     return b_size
 
 
-def __get_optimizer(model : nn.Module, optim : str = "adam", lr : float = 1e-3, weight_decay : float = 1e-5):
+def get_optimizer(model : nn.Module, optim : str = "adam", lr : float = 1e-3, weight_decay : float = 1e-5):
     '''
     returns torch.optim optimizer instance given optim string
     '''
     if optim == "adam":
         return torch.optim.Adam(
             model.parameters(),
-            lr,
+            lr= lr,
             weight_decay= weight_decay
         )
     elif optim == "sgd":

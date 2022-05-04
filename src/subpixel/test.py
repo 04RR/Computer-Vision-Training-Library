@@ -35,7 +35,7 @@ class Test:
 
     def test(self):
         print("Testing!")
-        self.model.fit(self.dataset, self.loss_fun)
+        self.model.fit(self.dataset, self.loss_fun, optimizer= "adam")
 
 
 datase = Datas(dataset)

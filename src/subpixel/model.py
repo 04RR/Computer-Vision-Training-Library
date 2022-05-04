@@ -53,7 +53,7 @@ class Model(nn.Module):
         
         return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"]) > 1 else outputs[self.details["outputs"][0]] 
 
-    def fit(self,trainset : Union(str,nn.Module), loss_fun : nn.Module,optimizer : str , lr :int = None):
+    def fit(self,trainset : Union[str,nn.Module], loss_fun : nn.Module,optimizer : str , lr :int = None):
         '''
         Trains the model on the given trainset
         '''
