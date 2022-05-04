@@ -10,26 +10,27 @@ import os
 import numpy as np
 import random
 
-# from subpixel.model import Model
+
+# def show_batch(data):
+#     pass
 
 
-def show_batch(data):
-    pass
+# def EncodingToClass(lst, classes):
+
+#     lst = list(lst.detach().squeeze(0).numpy())
+#     return classes[lst.index(max(lst))]
 
 
-def EncodingToClass(lst, classes):
-
-    lst = list(lst.detach().squeeze(0).numpy())
-    return classes[lst.index(max(lst))]
-
-
-def get_boxxes(t):
-    # '{x, y, h, w, [classes]}' -> [x, y, h, w, classes]
-    bbox = list(json.loads(t).values())
-    return bbox[:-1] + bbox[-1]
+# def get_boxxes(t):
+#     # '{x, y, h, w, [classes]}' -> [x, y, h, w, classes]
+#     bbox = list(json.loads(t).values())
+#     return bbox[:-1] + bbox[-1]
 
 
 def seed_everything(seed=42):
+    '''
+    Seeds EVERYTHING.
+    '''
 
     random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
@@ -41,6 +42,9 @@ def seed_everything(seed=42):
 
 
 def init_model(m):
+    '''
+    Initialises model parameters with xavier normalisation method.
+    '''
 
     seed_everything()
 
@@ -111,7 +115,7 @@ def findLR( model : nn.Module, dataset : nn.Module, loss_fn : nn.Module ,optimiz
 
 
 
-def find_batch_size(model : nn.Module, dataset : nn.Module) -> None:
+def find_batch_size(model : nn.Module, dataset : nn.Module):
     '''
     Finds the batch size to be set for ideal GPU usage (95% default)
 

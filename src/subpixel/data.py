@@ -18,6 +18,9 @@ torch.cuda.empty_cache()
 
 
 class ImageDataset(Dataset):
+    '''
+    Class that takes in the path of the dataset and converts it into a torch.utils.data.Dataset object.
+    '''
     def __init__(self, path, mode, device, transforms=None, train=True):
         super().__init__()
 
@@ -84,6 +87,16 @@ class ImageDataset(Dataset):
 
 
 def get_dataset(path, mode, device, transforms=None):
+    '''
+    Function that takes in the path and generates a trainset and valset (if present).
+
+    path: str 
+    mode: str
+    device: str
+    transforms: albumentations.transforms
+
+    Returns trainset and valset
+    '''
 
     trainset = ImageDataset(
         f"{path}train\\", mode, device, transforms=transforms, train=True
@@ -95,5 +108,12 @@ def get_dataset(path, mode, device, transforms=None):
         return trainset
 
 def get_dataloader(datset, b_size, shuffle):
+    '''
+    Converts the dataset to a DataLoader.
+
+    dataset: torch.utils.data.Dataset
+
+    Returns torch.utils.data.DataLoader
+    '''
 
     return DataLoader(datset, b_size, shuffle)

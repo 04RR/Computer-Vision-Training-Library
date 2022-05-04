@@ -78,6 +78,11 @@ class Model(nn.Module):
         return self.history
 
     def find_size(self):
+
+        '''Finds the size occupied by the trainable model parameters in CUDA memory.
+        
+        Returns the total number of trainable parameters and the size occupied. 
+        '''
         
         p_total = sum(p.numel() for p in self.parameters() if p.requires_grad) 
         bits = 32.
