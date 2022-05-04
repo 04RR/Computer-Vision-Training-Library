@@ -55,7 +55,23 @@ def init_model(m):
 
 
 
-def findLR( model, dataset, loss_fn,optimizer , start_lr=1e-7, end_lr=1e-1, steps=100):
+def findLR( model : nn.Module, dataset : nn.Module, loss_fn : nn.Module ,optimizer : str , start_lr : float=1e-7, end_lr : float=1e-1, steps : float=100):
+    '''
+    Finds the ideal initial LR for optimal training.
+    model : nn.Module , the model for which ideal LR needs to be found.
+
+    dataset : nn.Module ,  the dataset to be used to train.
+
+    loss_fn : nn.Module , loss to measure model.
+
+    optimizer : str , lowercase string of preferred optimizer.
+
+    start_lr : lower bound of the learning rate to be checked.
+
+    end_lr : upper bound of the learning rate to be checked.
+
+    steps : number of learning rates between start_lr and end_lr to be checked. 
+    '''
     seed_everything()
     lr = []
     loss = []
@@ -96,7 +112,15 @@ def findLR( model, dataset, loss_fn,optimizer , start_lr=1e-7, end_lr=1e-1, step
 
 
 
-def find_batch_size(model, dataset):
+def find_batch_size(model : nn.Module, dataset : nn.Module) -> None:
+    '''
+    Finds the batch size to be set for ideal GPU usage (95% default)
+
+    model : nn.Module , model being trained.
+
+    dataset : nn.Module , dataset to be loaded.
+
+    '''
 
     p, total_bits = model.find_size()
     f_before = torch.cuda.memory_reserved(0) - torch.cuda.memory_allocated(0)
@@ -118,6 +142,9 @@ def find_batch_size(model, dataset):
 
 
 def __get_optimizer(model : nn.Module, optim : str = "adam", lr : float = 1e-3, weight_decay : float = 1e-5):
+    '''
+    returns torch.optim optimizer instance given optim string
+    '''
     if optim == "adam":
         return torch.optim.Adam(
             model.parameters(),
