@@ -88,9 +88,11 @@ def get_dataset(path, mode, device, transforms=None):
     trainset = ImageDataset(
         f"{path}train\\", mode, device, transforms=transforms, train=True
     )
-    valset = ImageDataset(f"{path}\\val\\", mode, device, train=False)
-
-    return trainset, valset
+    try:
+        valset = ImageDataset(f"{path}\\val\\", mode, device, train=False)
+        return trainset, valset
+    except FileNotFoundError:
+        return trainset
 
 def get_dataloader(datset, b_size, shuffle):
 

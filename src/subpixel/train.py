@@ -14,7 +14,13 @@ torch.cuda.empty_cache()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def accuracy(out, labels):
+def accuracy(out: torch.Tensor, labels: torch.Tensor): # NEEDS TO BE CHANGED
+    '''
+    Finds the accuracy of the model by comparing the output of the model to the labels.
+
+    out: tensor
+    labels: tensor
+    '''
 
     c = 0
 
@@ -30,6 +36,23 @@ def accuracy(out, labels):
 
 
 class Trainer:
+    '''
+    class that has all the funcions and variables to train a model on your custom dataset.
+
+    model: nn.Module
+    trainset: str or (Dataset, ImageDataset)
+    transforms: 
+    optimizer: str
+    valset: (Dataset, ImageDataset)
+    epochs: int
+    mode: str ["classification", "detection", "segmentation"]
+    loss_fn: nn.Module
+    learning_rate: float
+    weight_decay: float
+    model_save_path: str
+    shuffle: bool
+    device: str ["cpu", "cuda"]
+    '''
     def __init__(
         self,
         model,
@@ -58,9 +81,14 @@ class Trainer:
         self.device = device
 
         if isinstance(trainset, str):
-            self.trainset, self.valset = get_dataset(
-                trainset, self.mode, device, transforms
-            )
+            try:
+                self.trainset, self.valset = get_dataset(
+                    trainset, self.mode, device, transforms
+                )
+            except:
+                self.trainset = get_dataset(
+                    trainset, self.mode, device, transforms
+                )
 
         elif isinstance(trainset, Dataset) or isinstance(trainset, ImageDataset):
             self.trainset = trainset
@@ -82,10 +110,16 @@ class Trainer:
 
         self.train_dl = get_dataloader(self.trainset, self.b_size, self.shuffle)
 
-        if valset != None:
+        if self.valset != None:
             self.val_dl = get_dataloader(self.valset, self.b_size, self.shuffle)
 
     def fit(self):
+        '''
+        Function that has the training loop implemented. 
+        It inherits all the necessary components from the Trainer class.
+
+        Returns the loss values and acc values if applicable. 
+        '''
 
         flag = self.mode == "classification" or self.mode == "detection"
         scaler = torch.cuda.amp.GradScaler()
@@ -183,6 +217,11 @@ class Trainer:
             return losses
 
     def test_sample(self, image, label=None):
+        '''
+        Used to test the model on one image.
+
+        Returns the prediction.
+        '''
 
         pred = self.model(image)
 
@@ -193,6 +232,11 @@ class Trainer:
         return pred
 
     def evaluate(self, test_path):
+        '''
+        Used to evaluate the model on the test dataset. 
+
+        Returns the losses. 
+        '''
 
         test_dl = get_dataloader(
             ImageDataset(test_path, self.mode, device), self.b_size, False
