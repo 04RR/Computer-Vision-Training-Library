@@ -83,12 +83,17 @@ class ImageDataset(Dataset):
         return len(self.df)
 
 
-def get_dataset(path, mode, transforms=None):
+def get_dataset(path, mode, device, transforms=None):
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     trainset = ImageDataset(
         f"{path}train\\", mode, device, transforms=transforms, train=True
     )
-    valset = ImageDataset(f"{path}\\val\\", mode, device, train=False)
+    try:
+        valset = ImageDataset(f"{path}\\val\\", mode, device, train=False)
+        return trainset, valset
+    except FileNotFoundError:
+        return trainset
 
-    return trainset, valset
+def get_dataloader(datset, b_size, shuffle):
+
+    return DataLoader(datset, b_size, shuffle)

@@ -1,10 +1,11 @@
+from torch.utils.data import Dataset
 import torch
 from tqdm import tqdm
 import warnings
-from data import ImageDataset
+from data import ImageDataset, get_dataloader, get_dataset
 import numpy as np
 import torch.nn as nn
-from utils import FindLR
+from utils import findLR, find_batch_size, get_optimizer
 
 
 warnings.filterwarnings("ignore")
@@ -13,7 +14,13 @@ torch.cuda.empty_cache()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def accuracy(out, labels):
+def accuracy(out: torch.Tensor, labels: torch.Tensor): # NEEDS TO BE CHANGED
+    '''
+    Finds the accuracy of the model by comparing the output of the model to the labels.
+
+    out: tensor
+    labels: tensor
+    '''
 
     c = 0
 
@@ -29,11 +36,29 @@ def accuracy(out, labels):
 
 
 class Trainer:
+    '''
+    class that has all the funcions and variables to train a model on your custom dataset.
+
+    model: nn.Module
+    trainset: str or (Dataset, ImageDataset)
+    transforms: 
+    optimizer: str
+    valset: (Dataset, ImageDataset)
+    epochs: int
+    mode: str ["classification", "detection", "segmentation"]
+    loss_fn: nn.Module
+    learning_rate: float
+    weight_decay: float
+    model_save_path: str
+    shuffle: bool
+    device: str ["cpu", "cuda"]
+    '''
     def __init__(
         self,
         model,
         trainset,
-        optimizer=None,
+        transforms=None,
+        optimizer="adam",
         valset=None,
         epochs=10,
         mode="classification",
@@ -41,9 +66,10 @@ class Trainer:
         learning_rate=None,
         weight_decay=1e-5,
         model_save_path="./",
+        shuffle=True,
+        device="cpu",
     ):
         self.model = model.cuda() if device == "cuda" else model
-        self.trainset = trainset
         self.valset = valset
         self.epochs = epochs
         self.mode = mode
@@ -51,22 +77,49 @@ class Trainer:
         self.weight_decay = weight_decay
         self.model_save_path = model_save_path
         self.learning_rate = learning_rate
+        self.shuffle = shuffle
+        self.device = device
+
+        if isinstance(trainset, str):
+            try:
+                self.trainset, self.valset = get_dataset(
+                    trainset, self.mode, device, transforms
+                )
+            except:
+                self.trainset = get_dataset(
+                    trainset, self.mode, device, transforms
+                )
+
+        elif isinstance(trainset, Dataset) or isinstance(trainset, ImageDataset):
+            self.trainset = trainset
+            self.valset = valset
+
+        self.b_size = find_batch_size(model, self.trainset)
 
         if learning_rate == None:
-            self.learning_rate = self.find_lr()
-            # print(self.learning_rate)
+            self.learning_rate = findLR(
+                self.model, self.trainset, self.loss_fn, optimizer
+            )[0]
 
-        if optimizer == None:
-            self.optimizer = torch.optim.Adam(
-                self.model.parameters(),
-                lr=self.learning_rate,
-                weight_decay=self.weight_decay,
-            )
-        else:
-            self.optimizer = optimizer
+        self.optimizer = get_optimizer(
+            self.model,
+            optim=optimizer,
+            lr=self.learning_rate,
+            weight_decay=self.weight_decay,
+        )
 
+        self.train_dl = get_dataloader(self.trainset, self.b_size, self.shuffle)
+
+        if self.valset != None:
+            self.val_dl = get_dataloader(self.valset, self.b_size, self.shuffle)
 
     def fit(self):
+        '''
+        Function that has the training loop implemented. 
+        It inherits all the necessary components from the Trainer class.
+
+        Returns the loss values and acc values if applicable. 
+        '''
 
         flag = self.mode == "classification" or self.mode == "detection"
         scaler = torch.cuda.amp.GradScaler()
@@ -79,10 +132,7 @@ class Trainer:
             epoch_acc = {"train": [], "val": []}
 
             self.model.train()
-            for j in tqdm(range(len(self.trainset))):
-
-                img, label = self.trainset[j]
-                img, label = img.unsqueeze(0), label.unsqueeze(0)
+            for img, label in tqdm(self.train_dl):
 
                 with torch.cuda.amp.autocast():
 
@@ -109,9 +159,7 @@ class Trainer:
             if self.valset != None:
 
                 self.model.eval()
-                for img, label in tqdm(self.valset):
-
-                    img, label = img.unsqueeze(0), label.unsqueeze(0)
+                for img, label in tqdm(self.val_dl):
 
                     with torch.cuda.amp.autocast():
 
@@ -169,6 +217,11 @@ class Trainer:
             return losses
 
     def test_sample(self, image, label=None):
+        '''
+        Used to test the model on one image.
+
+        Returns the prediction.
+        '''
 
         pred = self.model(image)
 
@@ -179,17 +232,21 @@ class Trainer:
         return pred
 
     def evaluate(self, test_path):
+        '''
+        Used to evaluate the model on the test dataset. 
 
-        testset = ImageDataset(test_path, self.mode, device)
+        Returns the losses. 
+        '''
+
+        test_dl = get_dataloader(
+            ImageDataset(test_path, self.mode, device), self.b_size, False
+        )
         losses = []
 
-        for img, label in testset:
-            pred = self.model(img.unsqueeze(0))
+        for img, label in test_dl:
+            pred = self.model(img)
             loss = self.loss_fn(label, pred).detach()
             losses.append(loss)
 
         return sum(losses) / len(losses)
-
-    def find_lr(self):
-        return FindLR(self.model, self.trainset, self.loss_fn).findLR()[0]
 

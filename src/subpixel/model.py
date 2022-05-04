@@ -1,14 +1,18 @@
+from typing import Union
 from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 import json
 from torchinfo import summary
 from train import Trainer
-from utils import FindLR
+from utils import findLR, find_batch_size
 import numpy as np
 
 
 class Model(nn.Module):
+    '''
+    Converts model architecture from JSON to a trainable model and has a fit function that can train the model on the given dataset when called.
+    '''
     def __init__(self,path = 'arch.json') -> None:
         super(Model,self).__init__()
 
@@ -52,20 +56,26 @@ class Model(nn.Module):
         
         return [outputs[j] for j in self.details["outputs"]] if len(self.details["outputs"]) > 1 else outputs[self.details["outputs"][0]] 
 
-    def fit(self,trainset, loss_fun, lr= None):
+    def fit(self,trainset : Union[str,nn.Module], loss_fun : nn.Module,optimizer : str , lr :int = None, mode :str = "classification",valset :nn.Module = None):
+        '''
+        Trains the model on the given trainset.
 
-        if lr == None:
-            self.idealLR, self.loss,self.LRs = FindLR(self, trainset, loss_fun).findLR()
-            plt.plot(self.LRs,self.loss)
-            plt.ylabel("loss")
-            plt.xlabel("lr")
-            plt.show()
-            print("Ideal LR = ", self.idealLR)
+        trainset : str | nn.Module , if trainset is str should be path to dataset. Check Trainer documentation for more details.
 
-            lr = self.idealLR
+        loss_fn : nn.Module , function to check the loss.
+
+        optimizer : str, lowercase string specifying name of optimizer to be used.
+
+        lr (optional) : int  , initial learning rate. If not specified, ideal initial LR is found and used (refer utild.findLR()).
+
+        mode : str  , default "classification", specifies the mode of operation. takes any of ["classification", "detection", "segmentation"]
+
+        valset (optional): nn.Module | None , default None, provides validation set. Note:- if trainset is str automatically valset is taken from directory structure. 
+        '''
 
         self.trainer = Trainer(self, trainset= trainset, epochs= 10, learning_rate= lr)
         self.history = self.trainer.fit()
+        return self.history
 
     def find_size(self):
         
