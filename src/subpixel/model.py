@@ -13,8 +13,12 @@ class Model(nn.Module):
     '''
     Converts model architecture from JSON to a trainable model and has a fit function that can train the model on the given dataset when called.
     '''
-    def __init__(self,path = 'arch.json') -> None:
+    def __init__(self,model : nn.Module = None,path :str = 'arch.json') -> None:
         super(Model,self).__init__()
+        if isinstance(model,nn.Module):
+            self.pre_defined_model = True
+            self.model = model
+            return
 
         JSON_file = open(path,"r")
         arch = json.load(JSON_file)
@@ -35,6 +39,8 @@ class Model(nn.Module):
         
     
     def forward(self,*X):
+        if self.pre_defined_model:
+            return self.model(*X)
 
         outputs = []
         
@@ -73,7 +79,7 @@ class Model(nn.Module):
         valset (optional): nn.Module | None , default None, provides validation set. Note:- if trainset is str automatically valset is taken from directory structure. 
         '''
 
-        self.trainer = Trainer(self, trainset= trainset, epochs= 10, learning_rate= lr)
+        self.trainer = Trainer(self, trainset= trainset, epochs= 10, learning_rate= lr, loss_fn= loss_fun, optimizer= optimizer, mode= mode, valset= valset)
         self.history = self.trainer.fit()
         return self.history
 
