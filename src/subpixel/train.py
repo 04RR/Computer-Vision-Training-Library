@@ -177,7 +177,7 @@ class Trainer:
                     )
 
                     print(
-                        f"{epoch+1}/{self.epochs} -- Train Loss: {losses['train'][-1]} -- Train acc: {acc['train'][-1] *100}% -- Val Loss: {losses['val'][-1]} -- Val acc: {acc['val'][-1]*100}%"
+                        f"{epoch+1}/{self.epochs} -- Train Loss: {losses['train'][-1]} -- Train acc: {acc['train'][-1]}% -- Val Loss: {losses['val'][-1]} -- Val acc: {acc['val'][-1]}%"
                     )
                 else:
                     print(
@@ -192,7 +192,7 @@ class Trainer:
                     )
 
                     print(
-                        f"{epoch+1}/{self.epochs} -- Train Loss: {losses['train'][-1]} -- Train acc: {acc['train'][-1] * 100}%"
+                        f"{epoch+1}/{self.epochs} -- Train Loss: {losses['train'][-1]} -- Train acc: {acc['train'][-1]}%"
                     )
                 else:
                     print(
