@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import json
 from torchinfo import summary
-from train import Trainer
+from vision.train import visionTrainer
 from utils import findLR, find_batch_size
 import numpy as np
 
@@ -79,7 +79,7 @@ class Model(nn.Module):
         valset (optional): nn.Module | None , default None, provides validation set. Note:- if trainset is str automatically valset is taken from directory structure. 
         '''
 
-        self.trainer = Trainer(self, trainset= trainset, epochs= 10, learning_rate= lr, loss_fn= loss_fun, optimizer= optimizer, mode= mode, valset= valset)
+        self.trainer = visionTrainer(self, trainset= trainset, epochs= 10, learning_rate= lr, loss_fn= loss_fun, optimizer= optimizer, mode= mode, valset= valset)
         self.history = self.trainer.fit()
         return self.history
 

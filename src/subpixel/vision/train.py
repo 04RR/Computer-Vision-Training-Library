@@ -27,7 +27,7 @@ def accuracy(out: torch.Tensor, labels: torch.Tensor):
         return (out == labels).sum().item() / out.size(0) * out.size(1)
 
 
-class Trainer:
+class visionTrainer:
     """
     class that has all the funcions and variables to train a model on your custom dataset.
 
