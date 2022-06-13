@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.utils import data
 import torchvision
 from model import Model
-from data import ImageDataset
+from vision.data import ImageDataset
 
 # dataset = torchvision.datasets.FashionMNIST("./", download=True)
 
@@ -45,8 +45,8 @@ class Test:
 
 
 
-datase = Datas(dataset_path)
-model = Model().cuda()
-tes = Test(model, datase, loss_fun=nn.MSELoss())
-tes.test()
+#datase = Datas(dataset_path)
+#model = Model().cuda()
+#tes = Test(model, datase, loss_fun=nn.MSELoss())
+#tes.test()
 
