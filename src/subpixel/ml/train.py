@@ -12,7 +12,17 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 
 class Regression:
+    """
+    Class that contains all the variables and funtions to train a model on the given data.
+    """
+
     def __init__(self, df, target_col, type=None):
+        """
+        Init funtion of the Regression class.
+        :param df: Dataframe
+        :param target_col: Target column
+        :param type: Type of the model to train.
+        """
 
         self.df = df
         self.target_col = target_col
@@ -43,6 +53,11 @@ class Regression:
         self.model.fit(self.X, self.y)
 
     def find_classfier(self):
+        """
+        Finds the best classifier for the given data.
+
+        :return: Name of the best classifier and the model.
+        """
 
         _THRESHOLD = 500
 
@@ -65,10 +80,29 @@ class Regression:
         return list(model_scores.keys())[0], model_scores
 
     def predict(self, df):
+        """
+        Gets the predictions for the given data.
+        :param df: Dataframe
+
+        :return: Predictions
+        """
+
         return self.model.predict(df)
 
     def score(self):
+        """
+        Gets the score of the model on train data.
+
+        :return: Score
+        """
+
         return self.model.score(self.X, self.y)
 
     def score_with_test(self, X_test, y_test):
+        """
+        Gets the score of the model on test data.
+
+        :param X_test: Score on Test data
+        """
+
         return self.model.score(X_test, y_test)

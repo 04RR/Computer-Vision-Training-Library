@@ -7,10 +7,24 @@ import pandas as pd
 
 
 def accuracy(y_true, y_pred):
+    """
+    Function that finds the accuracy of a model based on the true and predicted values.
+    :param y_true: True values
+    :param y_pred: Predicted values
+
+    :return: Accuracy of the model
+    """
+
     return sklearn.metrics.accuracy_score(y_true, y_pred)
 
 
 def correlation_matrix(df, cols=False):
+    """
+    Gets the correlation matrix of the dataframe.
+    :param df: Dataframe
+
+    :return: Correlation matrix
+    """
 
     if cols:
         df = df[cols]
@@ -19,10 +33,17 @@ def correlation_matrix(df, cols=False):
 
 
 def find_outliers(df, cols=False, remove=False):
+    """
+    Finds outliers in each column of the dataframe.
+    :param df: Dataframe
+    :param cols: Columns to check for outliers
+    :param remove: If True, removes outliers from the dataframe
+
+    :return: list of outliers and dataframe without outliers if remove is True.
+    """
 
     if cols:
-        df = df[cols]
-        numeric_cols = df._get_numeric_data().columns.tolist()
+        numeric_cols = df[cols]._get_numeric_data().columns.tolist()
     else:
         numeric_cols = df._get_numeric_data().columns.tolist()
 
@@ -48,10 +69,19 @@ def find_outliers(df, cols=False, remove=False):
 
         outliers[col] = outlier_list
 
-    return outliers
+    if remove:
+        return outliers, df
+    else:
+        return outliers
 
 
 def boxplot(df, cols=False):
+    """
+    Shows a boxplot of the dataframe.
+    :param df: Dataframe
+
+    :return: None
+    """
 
     if cols:
         df = df[cols]
@@ -70,11 +100,25 @@ def boxplot(df, cols=False):
 
 
 def get_combinations(list_of_values):
+    """
+    Gets the combinations of the list of values.
+    :param list_of_values: List of values
+
+    :return: List of combinations
+    """
     return list(itertools.combinations(list_of_values, 2))
 
 
 # NEEDS TO BE CHANGED TO DISPLAY IN SAME PAGE
 def feature_correlation(df, cols=False, kind="reg"):
+    """
+    Gets the correlation matrix of the dataframe.
+    :param df: Dataframe
+    :param cols: Columns to check for outliers
+    :param kind: Type of plot to show
+
+    :return: None
+    """
 
     if cols:
         lst = get_combinations(cols)
@@ -90,29 +134,66 @@ def feature_correlation(df, cols=False, kind="reg"):
 
 
 def fill_nan_with_mean(df):
+    """
+    Fills the NaN values with the mean of the column.
+    :param df: Dataframe
+
+    :return: Dataframe with NaN values filled with mean.
+    """
+
     for col in df.columns:
         df[col] = df[col].fillna(df[col].mean())
     return df
 
 
 def delete_row_with_nan(df):
+    """
+    Delete rows with NaN values.
+    :param df: Dataframe
+
+    :return: Dataframe without rows with NaN values.
+    """
+
     df.dropna(inplace=True)
     return df
 
 
 def pie_chart(df, col):
+    """
+    Pie chart of the dataframe.
+    :param df: Dataframe
+    :param col: Column to show in the pie chart
+
+    :return: None
+    """
 
     df[col].value_counts().plot(kind="pie", autopct="%1.1f%%")
     plt.show()
 
 
 def count_plot(df, col):
+    """
+    Count chart of the dataframe.
+    :param df: Dataframe
+    :param col: Column to show in the count chart
+
+    :return: None
+    """
 
     df[col].value_counts().plot(kind="bar")
     plt.show()
 
 
 def feature_importance(x, y, show_plot=False):
+    """
+    Gets the important features for the given target column.
+    :param x: Dataframe
+    :param y: Target column
+    :param show_plot: If True, shows the plot of the feature importance.
+
+    :return: List of important features
+    """
+
     model = ExtraTreesClassifier()
     model.fit(x, y)
 
@@ -126,6 +207,14 @@ def feature_importance(x, y, show_plot=False):
 
 
 def histogram(df, cols, bins=10):
+    """
+    Shows a histogram of the dataframe.
+    :param df: Dataframe
+    :param cols: Columns to show in the histogram
+    :param bins: Number of bins in the histogram
+
+    :return: None
+    """
 
     n = len(cols)
 
@@ -144,14 +233,38 @@ def histogram(df, cols, bins=10):
 
 
 def get_median(df, col):
+    """
+    Gets the median of the column.
+    :param df: Dataframe
+    :param col: Column to get the median of
+
+    :return: Median of the column
+    """
+
     return df[col].median()
 
 
 def get_mean(df, col):
+    """
+    Gets the mean of the column.
+    :param df: Dataframe
+    :param col: Column to get the mean of
+
+    :return: Mean of the column
+    """
+
     return df[col].mean()
 
 
 def check_for_outliers(df, cols=False, threshold=10):
+    """
+    Finds columns that might have outliers in the dataframe.
+    :param df: Dataframe
+    :param cols: Columns to check for outliers
+    :param threshold: Threshold for deviation of mean from median
+
+    :return: List of columns with outliers
+    """
 
     cols = df.columns if cols is False else cols
 
@@ -168,6 +281,13 @@ def check_for_outliers(df, cols=False, threshold=10):
 
 
 def get_correlation_with_target(df, target, cols=False):
+    """
+    Gets the correlation between the target column and the other columns.
+    :param df: Dataframe
+    :param target: Target column
+
+    :return: List of correlations
+    """
 
     if cols:
         df = df[cols]
@@ -176,22 +296,61 @@ def get_correlation_with_target(df, target, cols=False):
 
 
 def get_kurtosis(df, col):
+    """
+    Gets the kurtosis of the column.
+    :param df: Dataframe
+    :param col: Column to get the kurtosis of
+
+    :return: Kurtosis of the column
+    """
+
     return df[col].kurtosis()
 
 
 def get_skewness(df, col):
+    """
+    Gets the skewness of the column.
+    :param df: Dataframe
+    :param col: Column to get the skewness of
+
+    :return: skewness of the column
+    """
+
     return df[col].skew()
 
 
 def get_variance(df, col):
+    """
+    Gets the variance of the column.
+    :param df: Dataframe
+    :param col: Column to get the variance of
+
+    :return: variance of the column
+    """
+
     return df[col].var()
 
 
 def get_count_of_unique_values(df, col):
+    """
+    Gets the count of unique values in the column.
+    :param df: Dataframe
+    :param col: Column to get the count of unique values of
+
+    :return: count of unique values in the column
+    """
+
     return df[col].nunique()
 
 
 def get_statistics(df, cols=False):
+    """
+    Gets the statistics of the dataframe.
+    :param df: Dataframe
+    :param cols: Columns to get the statistics of
+
+    :return: Dictionary with the statistics
+    """
 
     if not cols:
         cols = df.columns
