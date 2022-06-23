@@ -177,3 +177,35 @@ def get_correlation_with_target(df, target, cols=False):
 
 def get_kurtosis(df, col):
     return df[col].kurtosis()
+
+
+def get_skewness(df, col):
+    return df[col].skew()
+
+
+def get_variance(df, col):
+    return df[col].var()
+
+
+def get_count_of_unique_values(df, col):
+    return df[col].nunique()
+
+
+def get_statistics(df, cols=False):
+
+    if not cols:
+        cols = df.columns
+
+    stats = {}
+
+    for col in cols:
+        stats[col] = {}
+        stats[col]["unique_count"] = get_count_of_unique_values(df, col)
+        stats[col]["mean"] = get_mean(df, col)
+        stats[col]["median"] = get_median(df, col)
+        stats[col]["variance"] = get_variance(df, col)
+        stats[col]["skewness"] = get_skewness(df, col)
+        stats[col]["kurtosis"] = get_kurtosis(df, col)
+
+    return stats
+
