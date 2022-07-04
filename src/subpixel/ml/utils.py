@@ -29,7 +29,9 @@ def correlation_matrix(df, cols=False):
     if cols:
         df = df[cols]
 
-    return df.corr()
+    numeric_cols = df._get_numeric_data().columns.tolist()
+
+    return df[numeric_cols].corr()
 
 
 def find_outliers(df, cols=False, remove=False):
@@ -200,7 +202,7 @@ def feature_importance(x, y, show_plot=False):
     feat_importances = pd.Series(model.feature_importances_, index=x.columns)
 
     if show_plot:
-        feat_importances.nlargest(12).plot(kind="barh")
+        feat_importances.nlargest(len(x.columns) // 2).plot(kind="barh")
         plt.show()
 
     return feat_importances
@@ -367,4 +369,3 @@ def get_statistics(df, cols=False):
         stats[col]["kurtosis"] = get_kurtosis(df, col)
 
     return stats
-
