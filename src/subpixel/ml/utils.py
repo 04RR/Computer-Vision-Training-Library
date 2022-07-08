@@ -7,6 +7,9 @@ import pandas as pd
 import json
 
 
+# Make function to find if a column has classification type values that are not numeric, if True get_dummies. If False, do nothing.
+
+
 def accuracy(y_true, y_pred):
     """
     Function that finds the accuracy of a model based on the true and predicted values.
@@ -67,7 +70,7 @@ def find_outliers(df, cols=False):
 
     outlier_idx = list(set(outlier_idx))
     df = df.drop(index=outlier_idx)
-    
+
     return outlier_idx, df
 
 
@@ -339,7 +342,7 @@ def get_count_of_unique_values(df, col):
     return df[col].nunique()
 
 
-def get_statistics(df, cols=False, save= False):
+def get_statistics(df, cols=False, save=False):
     """
     Gets the statistics of the dataframe.
     :param df: Dataframe
