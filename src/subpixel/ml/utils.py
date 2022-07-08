@@ -138,7 +138,7 @@ def fill_nan_with_mean(df):
     """
 
     for col in df.columns:
-        df[col] = df[col].fillna(df[col].mean())
+        df[col] = df[col].fillna(get_mean(df, col))
     return df
 
 
