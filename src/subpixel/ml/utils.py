@@ -4,6 +4,7 @@ import seaborn as sns
 import itertools
 from sklearn.ensemble import ExtraTreesClassifier
 import pandas as pd
+import json
 
 
 def accuracy(y_true, y_pred):
@@ -34,7 +35,7 @@ def correlation_matrix(df, cols=False):
     return df[numeric_cols].corr()
 
 
-def find_outliers(df, cols=False, remove=False):
+def find_outliers(df, cols=False):
     """
     Finds outliers in each column of the dataframe.
     :param df: Dataframe
@@ -49,11 +50,9 @@ def find_outliers(df, cols=False, remove=False):
     else:
         numeric_cols = df._get_numeric_data().columns.tolist()
 
-    outliers = {}
+    outlier_idx = []
 
     for col in numeric_cols:
-
-        outlier_list = []
 
         q1 = df[col].quantile(0.25)
         q3 = df[col].quantile(0.75)
@@ -64,17 +63,12 @@ def find_outliers(df, cols=False, remove=False):
 
         for i, val in enumerate(df[col]):
             if val < low_bound or val > high_bound:
-                outlier_list.append(i)
+                outlier_idx.append(i)
 
-                if remove:
-                    df.drop(df.index[i], inplace=True)
-
-        outliers[col] = outlier_list
-
-    if remove:
-        return outliers, df
-    else:
-        return outliers
+    outlier_idx = list(set(outlier_idx))
+    df = df.drop(index=outlier_idx)
+    
+    return outlier_idx, df
 
 
 def boxplot(df, cols=False):
@@ -294,7 +288,7 @@ def get_correlation_with_target(df, target, cols=False):
     if cols:
         df = df[cols]
 
-    return df.corrwith(target).sort_values(ascending=False)
+    return df.corrwith(df[target]).sort_values(ascending=False)[1:]
 
 
 def get_kurtosis(df, col):
@@ -345,7 +339,7 @@ def get_count_of_unique_values(df, col):
     return df[col].nunique()
 
 
-def get_statistics(df, cols=False):
+def get_statistics(df, cols=False, save= False):
     """
     Gets the statistics of the dataframe.
     :param df: Dataframe
@@ -367,5 +361,9 @@ def get_statistics(df, cols=False):
         stats[col]["variance"] = get_variance(df, col)
         stats[col]["skewness"] = get_skewness(df, col)
         stats[col]["kurtosis"] = get_kurtosis(df, col)
+
+    if save:
+        with open("stats.json", "w") as f:
+            json.dump(stats, f)
 
     return stats
