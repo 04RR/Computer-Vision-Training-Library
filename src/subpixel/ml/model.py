@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from tab_transformer_pytorch import TabTransformer
 
+# https://github.com/lucidrains/tab-transformer-pytorch
+
 
 cont_mean_std = torch.randn(10, 2)
 
